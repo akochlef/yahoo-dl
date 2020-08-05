@@ -1,0 +1,41 @@
+#! /usr/bin/python3
+# Anis Kochlef (akochlef@gmail.com)
+# add symbols to download to watchlist.txt
+
+
+import requests
+import time
+
+WATCHLIST = 'watchlist.txt'
+
+def get_historical_data(symbol):
+	period1 = 0
+	period2 = int(time.clock_gettime(0))
+	url1 = 'https://finance.yahoo.com/quote/'+symbol+'/history?p='+symbol
+	url2 = 'https://query1.finance.yahoo.com/v7/finance/download/'+symbol+'?period1='+str(period1)+'&period2='+str(period2)+'&interval=1d&events=history&crumb='
+	s = requests.Session()
+	crumb = "\\"
+	while crumb.find("\\") >= 0 :
+		s.cookies.clear()
+		r = s.get(url1)
+		crumb = r.text[r.text.find("\"user\":{\"crumb\":\"")+17:r.text.find("\"user\":{\"crumb\":\"")+28]
+	url3 = url2+crumb
+	r = s.get(url3)
+	return r.text
+
+def write_historical_data(symbol):
+	data = get_historical_data(symbol)
+	file_name = symbol + ".csv"
+	f = open(file_name,"w")
+	f.write(data)
+	f.write("\n") 
+	f.close
+
+watchlist = open(WATCHLIST,"r")
+symbols = watchlist.readlines()
+for symbol in symbols:
+	s = symbol.rstrip("\n")
+	write_historical_data(s)
+	print(s,"historical data downloaded.")
+watchlist.close() 
+
